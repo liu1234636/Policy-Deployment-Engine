@@ -1,10 +1,10 @@
 # main.tf
-variable "policy_name"   { type = string }
+variable "firestore_name"   { type = string }
 variable "location"      { type = string }
 variable "storage_class" { type = string }
 
-resource "google_storage_bucket" "b" {
-  name          = var.bucket_name
+resource "policy_firestore" "b" {
+  name          = var.firestore_name
   location      = var.location
   storage_class = var.storage_class
 
