@@ -1,5 +1,5 @@
 # main.tf
-# init
+# ini
 variable "firestore_name"   { type = string }
 variable "location"      { type = string }
 variable "storage_class" { type = string }
