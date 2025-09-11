@@ -1,33 +1,24 @@
-package terraform.gcp.firestore.document.fields
+package terraform.gcp.security.firestore_document.fields
 
 import data.terraform.gcp.helpers
+import data.terraform.gcp.security.firestore.vars
 
-default allow = false
+conditions := [
+    [
+        {
+            "situation_description": "Firestore documents must include both 'field1' and 'field2' to satisfy mandatory data schema.",
+            "remedies": [
+                "Add objects with `name = 'field1'` and `name = 'field2'` to the fields list in the google_firestore_document resource block."
+            ]
+        },
+        {
+            "condition": "Checks if fields array contains both field1 and field2",
+            "attribute_path": ["fields"],
+            "values": [["field1", "field2"]],
+            "policy_type": "contains_all"
+        }
+    ]
+]
 
-# 允许规则：所有 Firestore Document 的 fields 必须包含 name 为 "field1" 和 "field2"
-allow {
-    some resource
-    resources := helpers.get_all_resources("google_firestore_document")
-    resource := resources[_]
-    resource_values := resource.values
-    has_required_fields(resource_values.fields)
-}
-
-# 违规规则：fields 不包含必需字段
-violation[res] {
-    resources := helpers.get_all_resources("google_firestore_document")
-    resource := resources[_]
-    resource_values := resource.values
-    not has_required_fields(resource_values.fields)
-    res := {
-        "msg": sprintf("Firestore document '%v' 的 fields 未包含 field1 和 field2", [resource.name])
-    }
-}
-
-# 辅助函数：检查 fields 是否包含 field1 和 field2
-has_required_fields(fields) {
-    some i
-    some j
-    fields[i].name == "field1"
-    fields[j].name == "field2"
-}
+message := helpers.get_multi_summary(conditions, vars.variables).message
+details := helpers.get_multi_summary(conditions, vars.variables).details

@@ -1,24 +1,25 @@
 package terraform.gcp.firestore.backup_schedule.daily_recurrence
 
 import data.terraform.gcp.helpers
+import data.terraform.gcp.security.firestore.vars
 
-default allow = false
+conditions := [
+    [
+        {
+            "situation_description": "Firestore backup schedules must use daily_recurrence to ensure daily backups.",
+            "remedies": [
+                "Set `daily_recurrence = {}` in the google_firestore_backup_schedule resource block."
+            ]
+        },
+        {
+            "condition": "Checks if daily_recurrence block is present",
+            "attribute_path": ["daily_recurrence"],
+            "values": [{}],
+            "policy_type": "whitelist"
+        }
+    ]
+]
 
-# 检查所有 Firestore Backup Schedule 是否配置了 daily_recurrence
-allow {
-    some resource
-    resources := helpers.get_all_resources("google_firestore_backup_schedule")
-    resource := resources[_]
-    resource_values := resource.values
-    resource_values.daily_recurrence
-}
+message := helpers.get_multi_summary(conditions, vars.variables).message
+details := helpers.get_multi_summary(conditions, vars.variables).details
 
-# 示例 deny 规则：未配置 daily_recurrence 的资源
-violation[res] {
-    resources := helpers.get_all_resources("google_firestore_backup_schedule")
-    resource := resources[_]
-    not resource.values.daily_recurrence
-    res := {
-        "msg": sprintf("Backup schedule '%v' 未配置 daily_recurrence", [resource.name])
-    }
-}

@@ -1,25 +1,24 @@
-package terraform.gcp.firestore.document.project
+package terraform.gcp.security.firestore_document.project
 
 import data.terraform.gcp.helpers
+import data.terraform.gcp.security.firestore.vars
 
-default allow = false
+conditions := [
+    [
+        {
+            "situation_description": "Firestore documents must reside in project 'abcd_1234' to comply with organizational project governance.",
+            "remedies": [
+                "Set `project = 'abcd_1234'` in the google_firestore_document resource block."
+            ]
+        },
+        {
+            "condition": "Checks if project is abcd_1234",
+            "attribute_path": ["project"],
+            "values": ["abcd_1234"],
+            "policy_type": "whitelist"
+        }
+    ]
+]
 
-# 允许规则：所有 Firestore Document 的 project 必须为 "abcd_1234"
-allow {
-    some resource
-    resources := helpers.get_all_resources("google_firestore_document")
-    resource := resources[_]
-    resource_values := resource.values
-    resource_values.project == "abcd_1234"
-}
-
-# 违规规则：project 未设置为 abcd_1234
-violation[res] {
-    resources := helpers.get_all_resources("google_firestore_document")
-    resource := resources[_]
-    resource_values := resource.values
-    not resource_values.project == "abcd_1234"
-    res := {
-        "msg": sprintf("Firestore document '%v' 的 project 未设置为 abcd_1234，而是: %v", [resource.name, resource_values.project])
-    }
-}
+message := helpers.get_multi_summary(conditions, vars.variables).message
+details := helpers.get_multi_summary(conditions, vars.variables).details

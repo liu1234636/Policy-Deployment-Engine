@@ -1,25 +1,24 @@
-package terraform.gcp.firestore.database.location_id
+package terraform.gcp.security.firestore_database.location_id
 
 import data.terraform.gcp.helpers
+import data.terraform.gcp.security.firestore.vars
 
-default allow = false
+conditions := [
+    [
+        {
+            "situation_description": "Firestore databases must be deployed in the 'nam5' location to comply with organizational residency requirements.",
+            "remedies": [
+                "Set `location_id = 'nam5'` in the google_firestore_database resource block."
+            ]
+        },
+        {
+            "condition": "Checks if location_id is nam5",
+            "attribute_path": ["location_id"],
+            "values": ["nam5"],
+            "policy_type": "whitelist"
+        }
+    ]
+]
 
-# 允许规则：所有 Firestore Database 的 location_id 必须为 "nam5"
-allow {
-    some resource
-    resources := helpers.get_all_resources("google_firestore_database")
-    resource := resources[_]
-    resource_values := resource.values
-    resource_values.location_id == "nam5"
-}
-
-# 违规规则：location_id 未设置为 nam5
-violation[res] {
-    resources := helpers.get_all_resources("google_firestore_database")
-    resource := resources[_]
-    resource_values := resource.values
-    not resource_values.location_id == "nam5"
-    res := {
-        "msg": sprintf("Firestore database '%v' 的 location_id 未设置为 nam5，而是: %v", [resource.name, resource_values.location_id])
-    }
-}
+message := helpers.get_multi_summary(conditions, vars.variables).message
+details := helpers.get_multi_summary(conditions, vars.variables).details

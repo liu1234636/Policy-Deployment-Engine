@@ -1,24 +1,24 @@
-package terraform.gcp.firestore.backup_schedule.weekly_recurrence
+package terraform.gcp.security.firestore_backup_schedule.weekly_recurrence
 
 import data.terraform.gcp.helpers
+import data.terraform.gcp.security.firestore.vars
 
-default allow = false
+conditions := [
+    [
+        {
+            "situation_description": "Firestore backup schedules must use weekly_recurrence to guarantee weekly backups.",
+            "remedies": [
+                "Set `weekly_recurrence = {}` in the google_firestore_backup_schedule resource block."
+            ]
+        },
+        {
+            "condition": "Checks if weekly_recurrence block is present",
+            "attribute_path": ["weekly_recurrence"],
+            "values": [{}],
+            "policy_type": "whitelist"
+        }
+    ]
+]
 
-# 检查所有 Firestore Backup Schedule 是否配置了 weekly_recurrence
-allow {
-    some resource
-    resources := helpers.get_all_resources("google_firestore_backup_schedule")
-    resource := resources[_]
-    resource_values := resource.values
-    resource_values.weekly_recurrence
-}
-
-
-violation[res] {
-    resources := helpers.get_all_resources("google_firestore_backup_schedule")
-    resource := resources[_]
-    not resource.values.weekly_recurrence
-    res := {
-        "msg": sprintf("Backup schedule '%v' 未配置 weekly_recurrence", [resource.name])
-    }
-}
+message := helpers.get_multi_summary(conditions, vars.variables).message
+details := helpers.get_multi_summary(conditions, vars.variables).details
