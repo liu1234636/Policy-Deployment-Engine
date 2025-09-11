@@ -10,7 +10,7 @@ resource "google_firestore_database" "database-nc" {
 
 resource "google_firestore_backup_schedule" "weekly-backup-nc" {
   project  = "abcd_1234"
-  database = google_firestore_database.database.name
+  database = google_firestore_database.database-nc.name
 
   retention = "8467200s" // 14 weeks (maximum possible retention)
 
